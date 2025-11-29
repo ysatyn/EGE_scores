@@ -9,8 +9,7 @@ import asyncio
 
 from sqlalchemy import select
 
-# Добавьте echo=True для отладки
-engine = create_async_engine(DATABASE_URL, echo=True, pool_pre_ping=True)
+engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
 AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
 Base = declarative_base()
 
