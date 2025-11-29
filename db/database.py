@@ -7,8 +7,6 @@ from typing import AsyncGenerator
 from logging import Logger
 import asyncio
 
-from sqlalchemy import select
-
 engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
 AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
 Base = declarative_base()
@@ -32,6 +30,8 @@ async def init_models(needs_reset: bool = False, logger: Logger = None):
     """
     try:
         from db.models import User, Subject, Scores, Exams
+        from db.crud import create_subjects
+        
         async with engine.begin() as conn:
             if needs_reset:
                 if logger:
@@ -43,13 +43,18 @@ async def init_models(needs_reset: bool = False, logger: Logger = None):
         if logger:
             logger.info("Database tables created successfully")
 
+        if needs_reset:
+            if logger:
+                logger.info("Creating default subjects...")
+            async with AsyncSessionLocal() as session:
+                await create_subjects(session)
+
         await asyncio.sleep(1)
             
     except Exception as e:
         if logger:
             logger.error(f"Database initialization error: {e}")
         raise
-
 
 async def show_tables():
     async with engine.connect() as conn:

@@ -155,5 +155,20 @@ async def get_all_scores_for_user(db: AsyncSession, id: int, subject_id: Optiona
         raise ScoreNotFoundError()
     return scores
 
-
+async def create_subjects(db: AsyncSession) -> list[Subject]:
+    from utils.subjects import EGE_SUBJECTS_DICT
+    subjects = []
+    for subject_id, name in EGE_SUBJECTS_DICT.items():
+        new_subject = Subject(id=subject_id, name=name)
+        db.add(new_subject)
+        subjects.append(new_subject)
+    
+    try:
+        await db.commit()
+        for subject in subjects:
+            await db.refresh(subject)
+        return subjects
+    except IntegrityError as e:
+        await db.rollback()
+        raise CrudError("Failed to create subjects") from e
 
