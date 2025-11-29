@@ -13,7 +13,7 @@ from db import crud
 
 
 
-def get_all_handlers() -> list[(Handler, list[str])]:
+def get_all_message_handlers() -> list[(Handler, list[str])]:
     return [(handle_start, ['start']), (handle_help, ["help", "помощь", "commands"])]
 
 async def handle_start(message: Message, db: AsyncSession, logger: Logger, bot: AsyncTeleBot):

@@ -29,7 +29,7 @@ async def init_models(needs_reset: bool = False, logger: Logger = None):
     Инициализация моделей базы данных - через ORM
     """
     try:
-        from db.models import User, Subject, Scores, Exams
+        from db.models import User, Subject, Scores, Exams, UserSubjectAssociation
         from db.crud import create_subjects
         
         async with engine.begin() as conn:

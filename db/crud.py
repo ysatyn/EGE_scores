@@ -1,5 +1,5 @@
 from typing import Optional
-from db.models import User, Subject, Scores, Exams
+from db.models import User, Subject, Scores, Exams, UserSubjectAssociation
 from db.exceptions import *
 
 from utils.validators import validate_user_data_create, validate_user_data_update
@@ -172,3 +172,82 @@ async def create_subjects(db: AsyncSession) -> list[Subject]:
         await db.rollback()
         raise CrudError("Failed to create subjects") from e
 
+
+async def get_subject_by_id(db: AsyncSession, subject_id: str) -> Subject:
+    query = select(Subject).where(Subject.id == subject_id)
+    result = await db.execute(query)
+    subject = result.scalar_one_or_none()
+    if subject is None:
+        raise SubjectNotFoundError(subject_id=subject_id)
+    return subject
+
+
+async def add_subject_to_user(db: AsyncSession, user_id: int, subject_id: str) -> UserSubjectAssociation:
+    try:
+        user = await get_user_by_id(db, user_id)
+    except UserNotFoundError as e:
+        raise e
+
+    try:
+        subject = await get_subject_by_id(db, subject_id)
+    except SubjectNotFoundError as e:
+        raise e
+    
+    association = UserSubjectAssociation(user_id=user_id, subject_id=subject_id)
+    db.add(association)
+    try:
+        await db.commit()
+        await db.refresh(association)
+        return association
+    except IntegrityError as e:
+        await db.rollback()
+        raise CrudError("Failed to add subject to user") from e
+
+
+async def get_user_subjects(db: AsyncSession, user_id: int) -> list[Subject]:
+    try:
+        user = await get_user_by_id(db, user_id)
+    except UserNotFoundError as e:
+        raise e
+    
+    # Use explicit join between Subject and association table
+    query = select(Subject).join(UserSubjectAssociation, Subject.id == UserSubjectAssociation.subject_id).where(UserSubjectAssociation.user_id == user_id)
+    result = await db.execute(query)
+    subjects = result.scalars().all()
+    return subjects
+    
+
+async def get_user_subjects_ids(db: AsyncSession, user_id: int) -> list[str]:
+    subjects = await get_user_subjects(db, user_id)
+    subject_ids = [subject.id for subject in subjects]
+    return subject_ids
+
+async def remove_subject_from_user(db: AsyncSession, user_id: int, subject_id: str) -> None:
+    try:
+        user = await get_user_by_id(db, user_id)
+    except UserNotFoundError as e:
+        raise e
+
+    try:
+        subject = await get_subject_by_id(db, subject_id)
+    except SubjectNotFoundError as e:
+        raise e
+
+    query = delete(UserSubjectAssociation).where(
+        UserSubjectAssociation.user_id == user_id,
+        UserSubjectAssociation.subject_id == subject_id
+    )
+    try:
+        await db.execute(query)
+        await db.commit()
+    except SQLAlchemyError as e:
+        await db.rollback()
+        raise CrudError("Failed to remove subject from user") from e
+
+
+async def switch_subject_for_user(db: AsyncSession, user_id: int, subject_id: str) -> None:
+    user_subjects_ids = await get_user_subjects_ids(db, user_id)
+    if subject_id in user_subjects_ids:
+        await remove_subject_from_user(db, user_id, subject_id)
+    else:
+        await add_subject_to_user(db, user_id, subject_id)

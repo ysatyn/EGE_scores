@@ -34,3 +34,6 @@ class ScoreNotFoundError(NotFoundError):
         super().__init__(entity="Score", identifier=score_id)
 
 
+class SubjectNotFoundError(NotFoundError):
+    def __init__(self, subject_id: str | None = None):
+        super().__init__(entity="Subject", identifier=subject_id)

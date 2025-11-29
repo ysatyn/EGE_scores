@@ -21,6 +21,16 @@ class User(Base):
         return f"<User(id={self.id}, username={self.username})>"
 
 
+class UserSubjectAssociation(Base):
+    __tablename__ = "user_subjects"
+
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    subject_id: Mapped[str] = mapped_column(String, ForeignKey("subjects.id"), primary_key=True)
+
+    user = relationship("User", backref="user_subject_associations", lazy="selectin")
+    subject = relationship("Subject", backref="user_subject_associations", lazy="selectin")
+
+
 class Subject(Base):
     __tablename__ = "subjects"
     
@@ -40,7 +50,7 @@ class Scores(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     subject_id: Mapped[str] = mapped_column(String, ForeignKey("subjects.id"), nullable=False)
-    subject_name: Mapped[str] = mapped_column(String, nullable=False)  # Название предмета для быстрого доступа
+    subject_name: Mapped[str] = mapped_column(String, nullable=False)
     score: Mapped[int] = mapped_column(Integer, nullable=False)
     exam_date: Mapped[datetime.date | None] = mapped_column(Date, nullable=True)
     is_final: Mapped[bool] = mapped_column(Boolean, default=False)
