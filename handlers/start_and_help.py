@@ -9,12 +9,21 @@ from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db import crud
+from utils.obertka import db_handler
 
 
 
 
-def get_all_message_handlers() -> list[(Handler, list[str])]:
-    return [(handle_start, ['start']), (handle_help, ["help", "помощь", "commands"])]
+def register_handlers(bot: AsyncTeleBot, logger: Logger = None):
+    """Register message handlers defined in this module on `bot`."""
+    # explicit, linear registration (simpler to follow)
+    handler_start = db_handler(handle_start, logger=logger)
+    if callable(handler_start):
+        bot.register_message_handler(handler_start, commands=["start"], pass_bot=True)
+
+    handler_help = db_handler(handle_help, logger=logger)
+    if callable(handler_help):
+        bot.register_message_handler(handler_help, commands=["help", "помощь", "commands"], pass_bot=True)
 
 async def handle_start(message: Message, db: AsyncSession, logger: Logger, bot: AsyncTeleBot):
     await crud.create_or_update_user(db, **message.from_user.__dict__)
