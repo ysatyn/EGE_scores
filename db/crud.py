@@ -248,6 +248,8 @@ async def remove_subject_from_user(db: AsyncSession, user_id: int, subject_id: s
 async def switch_subject_for_user(db: AsyncSession, user_id: int, subject_id: str) -> None:
     user_subjects_ids = await get_user_subjects_ids(db, user_id)
     if subject_id in user_subjects_ids:
+        print("Removing subject")
         await remove_subject_from_user(db, user_id, subject_id)
     else:
         await add_subject_to_user(db, user_id, subject_id)
+        print("Adding subject")

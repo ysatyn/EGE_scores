@@ -42,7 +42,6 @@ async def main():
     from db.database import show_tables
     await show_tables()
 
-    await asyncio.sleep(2)
 
     from handlers.register_all_handlers import register_all_handlers
     await register_all_handlers(bot, logger=logger)

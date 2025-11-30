@@ -6,25 +6,25 @@ from telebot.async_telebot import AsyncTeleBot
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from db import crud
-from utils.obertka import db_handler
 import re
 
 from utils.subjects import EGE_SUBJECTS_DICT
+from utils.obertka import make_registered_handler
 
 
 def register_handlers(bot: AsyncTeleBot, logger: Logger = None):
-    """Register this module's message and callback handlers on `bot`."""
-    handler_set_subjects = db_handler(set_subjects_message_handler, logger=logger)
-    if callable(handler_set_subjects):
-        bot.register_message_handler(handler_set_subjects, commands=["set_subjects"], pass_bot=True)
+    logger.info("Registering goals and subjects handlers")
 
-    handler_set_subject_cb = db_handler(set_subject_callback_handler, logger=logger)
-    if callable(handler_set_subject_cb):
-        bot.register_callback_query_handler(
-            handler_set_subject_cb,
-            func=(lambda call, p=r"^set_subject_.*": bool(call.data and re.match(p, call.data))),
-            pass_bot=True,
-        )
+    # Message handler to open/set subjects list
+    handler_set_subjects = make_registered_handler(set_subjects_message_handler, bot=bot, logger=logger)
+    bot.register_message_handler(handler_set_subjects, commands=["subjects", "set_subjects"])    
+
+    # Callback handler for toggling subjects (set_subject_<id> / unset_subject_<id>)
+    handler_set_subject_callback = make_registered_handler(set_subject_callback_handler, bot=bot, logger=logger)
+    bot.register_callback_query_handler(
+        handler_set_subject_callback,
+        func=lambda call: call.data and (call.data.startswith("set_subject_") or call.data.startswith("unset_subject_"))
+    )
 
 
 async def set_subjects_message_handler(message: Message, db: AsyncSession, logger: Logger, bot: AsyncTeleBot):

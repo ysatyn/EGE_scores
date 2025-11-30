@@ -49,7 +49,6 @@ async def init_models(needs_reset: bool = False, logger: Logger = None):
             async with AsyncSessionLocal() as session:
                 await create_subjects(session)
 
-        await asyncio.sleep(1)
             
     except Exception as e:
         if logger:
