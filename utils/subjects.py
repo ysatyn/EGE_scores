@@ -16,3 +16,4 @@ EGE_SUBJECTS_DICT = {
     "spanish": "Испанский язык",
     "chinese": "Китайский язык"
 }
+

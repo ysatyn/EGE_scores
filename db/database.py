@@ -62,3 +62,4 @@ async def show_tables():
         print("Tables in the database:")
         for table in tables:
             print(table[0])
+        

@@ -26,6 +26,7 @@ class UserSubjectAssociation(Base):
 
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     subject_id: Mapped[str] = mapped_column(String, ForeignKey("subjects.id"), primary_key=True)
+    desired_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     user = relationship("User", backref="user_subject_associations", lazy="selectin")
     subject = relationship("Subject", backref="user_subject_associations", lazy="selectin")

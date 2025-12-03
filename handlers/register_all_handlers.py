@@ -9,3 +9,4 @@ async def register_all_handlers(bot: AsyncTeleBot, logger: Logger = None):
 
     _register_start(bot, logger=logger)
     _register_goals(bot, logger=logger)
+    

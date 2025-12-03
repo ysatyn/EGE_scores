@@ -1,0 +1,61 @@
+# Игнорировать виртуальные окружения
+venv/
+.venv/
+ENV/
+env/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.egg-info/
+
+
+# Distribution / build
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+*.egg
+*.whl
+
+# IDE / editor
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.*
+
+# Database files
+*.db
+*.sqlite
+db/*.db
+ege_bot_2.db
+
+# Logs
+*.log
+logs/
+
+# Tests / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Type check / caches / linters
+.mypy_cache/
+.pyre/
+.ruff_cache/
+.cache/

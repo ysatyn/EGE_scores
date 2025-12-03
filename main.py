@@ -37,7 +37,7 @@ async def initiate_database(needs_reset: bool = False, logger: logging.Logger = 
 async def main():
     bot = await initiate_bot()
     
-    await initiate_database(needs_reset=False, logger=logger)
+    await initiate_database(needs_reset=True, logger=logger)
     
     from db.database import show_tables
     await show_tables()
