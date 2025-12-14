@@ -95,16 +95,21 @@ async def get_score_by_id(db: AsyncSession, score_id: int) -> Scores:
         raise ScoreNotFoundError(score_id=score_id)
     return score
 
-async def add_score(db: AsyncSession, id: int, subject_id: str, score: int):
-    new_score = Scores(user_id=id, subject_id=subject_id, score=score)
+async def add_score(db: AsyncSession, user_id: int, subject_id: str, score: int, subject_name: str = None):
+    if subject_name is None:
+        subject = await get_subject_by_id(db, subject_id)
+        subject_name = subject.name
+    
+    new_score = Scores(
+        user_id=user_id, 
+        subject_id=subject_id, 
+        subject_name=subject_name,
+        score=score
+    )
     db.add(new_score)
-    try:
-        await db.commit()
-        await db.refresh(new_score)
-        return new_score
-    except IntegrityError as e:
-        await db.rollback()
-        raise CrudError("Failed to add score") from e
+    await db.commit()
+    await db.refresh(new_score)
+    return new_score
 
 
 async def edit_existing_score(db: AsyncSession, score_id: int, new_score_value: int):
@@ -210,7 +215,6 @@ async def get_user_subjects(db: AsyncSession, user_id: int) -> list[Subject]:
     except UserNotFoundError as e:
         raise e
     
-    # Use explicit join between Subject and association table
     query = select(Subject).join(UserSubjectAssociation, Subject.id == UserSubjectAssociation.subject_id).where(UserSubjectAssociation.user_id == user_id)
     result = await db.execute(query)
     subjects = result.scalars().all()
