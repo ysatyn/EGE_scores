@@ -15,7 +15,14 @@ class User(Base):
     last_name: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    scores = relationship("Scores", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
+    scores: Mapped[list["Scores"]] = relationship("Scores", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
+    
+    subjects: Mapped[list["Subject"]] = relationship(
+        "Subject",
+        secondary="user_subjects",
+        back_populates="users",
+        lazy="selectin"
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username})>"
@@ -28,8 +35,8 @@ class UserSubjectAssociation(Base):
     subject_id: Mapped[str] = mapped_column(String, ForeignKey("subjects.id"), primary_key=True)
     desired_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    user = relationship("User", backref="user_subject_associations", lazy="selectin")
-    subject = relationship("Subject", backref="user_subject_associations", lazy="selectin")
+    user: Mapped["User"] = relationship("User", backref="user_subject_associations", lazy="selectin")
+    subject: Mapped["Subject"] = relationship("Subject", backref="user_subject_associations", lazy="selectin")
 
 
 class Subject(Base):
@@ -39,7 +46,14 @@ class Subject(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     max_score: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
 
-    scores = relationship("Scores", back_populates="subject", cascade="all, delete-orphan", lazy="selectin")
+    scores: Mapped[list["Scores"]] = relationship("Scores", back_populates="subject", cascade="all, delete-orphan", lazy="selectin")
+    
+    users: Mapped[list["User"]] = relationship(
+        "User",
+        secondary="user_subjects",
+        back_populates="subjects",
+        lazy="selectin"
+    )
 
     def __repr__(self):
         return f"<Subject(id={self.id}, name={self.name})>"
@@ -57,8 +71,8 @@ class Scores(Base):
     is_final: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User", back_populates="scores", lazy="selectin")
-    subject = relationship("Subject", back_populates="scores", lazy="selectin")
+    user: Mapped["User"] = relationship("User", back_populates="scores", lazy="selectin")
+    subject: Mapped["Subject"] = relationship("Subject", back_populates="scores", lazy="selectin")
 
     def __repr__(self):
         return f"<Scores(id={self.id}, user_id={self.user_id}, subject={self.subject_name}, score={self.score})>"
@@ -73,7 +87,7 @@ class Exams(Base):
     exam_date: Mapped[datetime.date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    subject = relationship("Subject", lazy="selectin")
+    subject: Mapped["Subject"] = relationship("Subject", backref="exams", lazy="selectin")
 
     def __repr__(self):
         return f"<Exams(subject={self.subject_name}, exam_date={self.exam_date})>"
