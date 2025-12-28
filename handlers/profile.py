@@ -12,7 +12,6 @@ import datetime
 
 from utils.subjects import EGE_SUBJECTS_DICT
 from utils.obertka import make_registered_handler
-from utils.states import SpecialStates
 
 
 def register_handlers(bot: AsyncTeleBot, logger: Logger = None):
@@ -20,6 +19,11 @@ def register_handlers(bot: AsyncTeleBot, logger: Logger = None):
     
     handler_profile = make_registered_handler(profile_handler, bot=bot, logger=logger)
     bot.register_message_handler(handler_profile, commands=["profile", "me", "профиль"])
+    
+    bot.register_callback_query_handler(
+        handler_profile,
+        func=lambda call: call.data == "profile"
+    )
 
 
 async def profile_handler(message: types.Message, db: AsyncSession, logger: Logger, bot: AsyncTeleBot):

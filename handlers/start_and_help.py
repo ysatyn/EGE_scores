@@ -12,8 +12,6 @@ from db import crud
 from utils.obertka import make_registered_handler
 
 
-
-
 def register_handlers(bot: AsyncTeleBot, logger: Logger = None):
     if logger:
         logger.info("Registering start and help handlers")
@@ -24,76 +22,74 @@ def register_handlers(bot: AsyncTeleBot, logger: Logger = None):
     handler_help = make_registered_handler(handle_help, bot=bot, logger=logger)
     bot.register_message_handler(handler_help, commands=["help", "помощь", "commands"])
 
+
 async def handle_start(message: Message, db: AsyncSession, logger: Logger, bot: AsyncTeleBot):
     await crud.create_or_update_user(db, **message.from_user.__dict__)
     
     markup = types.InlineKeyboardMarkup(row_width=2)
     buttons = [
-        types.InlineKeyboardButton("📚 Выбрать предметы", callback_data="set_subjects_first"),
-        types.InlineKeyboardButton("➕ Добавить балл", callback_data="quick_add_score"),
-        types.InlineKeyboardButton("📊 Профиль", callback_data="profile_from_start"),
-        types.InlineKeyboardButton("🆘 Помощь", callback_data="help_from_start"),
+        types.InlineKeyboardButton("📚 Выбрать предметы", callback_data="subjects"),
+        types.InlineKeyboardButton("➕ Добавить балл", callback_data="add_score"),
+        types.InlineKeyboardButton("🎯 Установить цель", callback_data="set_desired_score"),
+        types.InlineKeyboardButton("📊 Профиль", callback_data="profile"),
     ]
     markup.add(*buttons)
     
-    message_text = f"Привет! Это бот по учёту баллов ЕГЭ.\n\n"
-    message_text += f"Здесь ты можешь:\n"
-    message_text += f"• Сохранять результаты тестов\n"
-    message_text += f"• Смотреть статистику и прогресс\n"
-    message_text += f"• Ставить цели на желаемые баллы\n"
-    message_text += f"• Отслеживать подготовку к экзаменам\n\n"
-    message_text += f"Используй кнопки ниже или команду /help"
+    message_text = f"👋 Привет, {message.from_user.first_name}!\n\n"
+    message_text += f"📚 **Это бот для учёта баллов ЕГЭ**\n\n"
+    message_text += f"✨ **Что можно делать:**\n"
+    message_text += f"• 📝 Сохранять результаты пробных тестов\n"
+    message_text += f"• 🎯 Ставить цели по предметам\n"
+    message_text += f"• 📊 Отслеживать прогресс подготовки\n"
+    message_text += f"• 📈 Анализировать статистику\n"
+    message_text += f"• 🏆 Достигать учебных целей\n\n"
+    message_text += f"🚀 **Начни с выбора предметов** или используй кнопки ниже!\n"
+    message_text += f"ℹ️ Подробнее — /help"
     
-    await bot.send_message(chat_id=message.chat.id, text=message_text, reply_markup=markup)
+    await bot.send_message(
+        chat_id=message.chat.id, 
+        text=message_text, 
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )
+
 
 async def handle_help(message: Message, db: AsyncSession, logger: Logger, bot: AsyncTeleBot):
-    user = await crud.create_or_update_user(db, **message.from_user.__dict__)
+    await crud.create_or_update_user(db, **message.from_user.__dict__)
     
-    help_text = f"🆘 Помощь по командам\n\n"
+    help_text = f"📚 **Помощь по боту для подготовки к ЕГЭ**\n\n"
     
-    help_text += f"📊 Основные команды:\n"
-    help_text += f"/start — Начало работы\n"
-    help_text += f"/help — Эта справка\n"
-    help_text += f"/profile — Ваш профиль и статистика\n"
-    help_text += f"/menu — Главное меню с кнопками\n\n"
+    help_text += f"🎯 **Основные команды:**\n"
+    help_text += f"`/start` — Начало работы, главное меню\n"
+    help_text += f"`/help` — Эта справка\n"
+    help_text += f"`/profile` — Ваш профиль и статистика\n\n"
     
-    help_text += f"📚 Работа с предметами:\n"
-    help_text += f"/subjects — Выбрать предметы для сдачи\n"
-    help_text += f"/set_subjects — Альтернатива /subjects\n\n"
+    help_text += f"📖 **Работа с предметами:**\n"
+    help_text += f"`/subjects` — Выбрать предметы для сдачи\n"
+    help_text += f"`/set_subjects` — То же самое\n\n"
     
-    help_text += f"🎯 Цели и результаты:\n"
-    help_text += f"/set_desired_score — Установить желаемый балл\n"
-    help_text += f"/desired_score — Альтернатива\n"
-    help_text += f"/add_score — Добавить результат теста\n"
-    help_text += f"/score — Альтернатива /add_score\n"
-    help_text += f"/result — Альтернатива /add_score\n\n"
+    help_text += f"🏆 **Цели и результаты:**\n"
+    help_text += f"`/set_desired_score` — Установить желаемый балл\n"
+    help_text += f"`/add_score` — Добавить результат теста\n\n"
     
-    help_text += f"📈 Быстрые действия:\n"
-    help_text += f"1. Используй /menu для быстрого доступа\n"
-    help_text += f"2. Или нажимай кнопки под сообщениями\n\n"
-    
-    help_text += f"🔧 Как пользоваться:\n"
-    help_text += f"1. Сначала выбери предметы (/subjects)\n"
-    help_text += f"2. Добавь первые результаты (/add_score)\n"
-    help_text += f"3. Поставь цели (/set_desired_score)\n"
-    help_text += f"4. Следи за прогрессом (/profile)\n\n"
-    
-    help_text += f"💡 Советы:\n"
-    help_text += f"• Регулярно добавляй результаты\n"
-    help_text += f"• Анализируй статистику\n"
-    help_text += f"• Ставь реалистичные цели\n"
-    help_text += f"• Сравнивай с предыдущими результатами\n\n"
-    
-    help_text += f"По вопросам и предложениям — пишите разработчику"
-    
+    help_text += f"🔄 **Рабочий процесс:**\n"
+    help_text += f"1️⃣ **Выбери предметы** → `/subjects`\n"
+    help_text += f"2️⃣ **Добавь первый результат** → `/add_score`\n"
+    help_text += f"3️⃣ **Поставь цели** → `/set_desired_score`\n"
+    help_text += f"4️⃣ **Следи за прогрессом** → `/profile`\n\n"
+        
     markup = types.InlineKeyboardMarkup(row_width=2)
     buttons = [
-        types.InlineKeyboardButton("📚 Выбрать предметы", callback_data="set_subjects_first"),
-        types.InlineKeyboardButton("➕ Добавить балл", callback_data="quick_add_score"),
-        types.InlineKeyboardButton("📊 Мой профиль", callback_data="profile_from_help"),
-        types.InlineKeyboardButton("📱 Главное меню", callback_data="menu_from_help"),
+        types.InlineKeyboardButton("📚 Выбрать предметы", callback_data="subjects"),
+        types.InlineKeyboardButton("➕ Добавить балл", callback_data="add_score"),
+        types.InlineKeyboardButton("🎯 Установить цель", callback_data="set_desired_score"),
+        types.InlineKeyboardButton("📊 Профиль", callback_data="profile"),
     ]
     markup.add(*buttons)
     
-    await bot.send_message(chat_id=message.chat.id, text=help_text, reply_markup=markup)
-    
+    await bot.send_message(
+        chat_id=message.chat.id, 
+        text=help_text, 
+        reply_markup=markup,
+        parse_mode="Markdown"
+    )

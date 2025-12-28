@@ -33,21 +33,16 @@ def validate_user_data_update(data: dict) -> dict:
 class TelegramEvent:
     def __init__(self, event: Union[types.Message, types.CallbackQuery]):
         self.from_user = event.from_user
-        self.event = event
-        self.event_type = 'message' if isinstance(event, types.Message) else 'callback'
+        self.original_event = event
         
-        try:
-            if isinstance(event, types.Message):
-                self.chat_id = event.chat.id
-                self.message_id = event.message_id
-                self.text = event.text or ''
-            else:
-                self.chat_id = event.message.chat.id
-                self.message_id = event.message.message_id
-                self.text = event.data or ''
-                self.callback_id = event.id
-        except AttributeError as e:
-            raise ValueError(f"Неподдерживаемый тип события: {type(event)}") from e
+        if isinstance(event, types.Message):
+            self.chat_id = event.chat.id
+            self.text = event.text or ''
+            self.event_type = 'message'
+        else: 
+            self.chat_id = event.message.chat.id
+            self.text = event.data or ''
+            self.event_type = 'callback'
     
     @property
     def is_message(self) -> bool:
@@ -56,4 +51,3 @@ class TelegramEvent:
     @property
     def is_callback(self) -> bool:
         return self.event_type == 'callback'
-    
