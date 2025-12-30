@@ -3,7 +3,6 @@ from telebot import Handler
 from telebot.types import Message
 from telebot import types
 from telebot.async_telebot import AsyncTeleBot
-from telebot.asyncio_helper import get_chat
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from db import crud

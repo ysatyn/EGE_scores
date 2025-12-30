@@ -42,6 +42,9 @@ async def main():
     bot.add_custom_filter(StateFilter(bot))
     
     await initiate_database(needs_reset=False, logger=logger)
+    
+    from utils.bot_utils import register_bot_commands
+    await register_bot_commands(bot)
 
     from handlers.register_all_handlers import register_all_handlers
     await register_all_handlers(bot, logger=logger)

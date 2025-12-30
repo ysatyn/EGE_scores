@@ -9,3 +9,16 @@ async def del_message_from_callback(bot: AsyncTeleBot, call: types.CallbackQuery
     except:
         pass
     return 
+
+BOT_COMMANDS = [
+    types.BotCommand("start", "Начало работы"),
+    types.BotCommand("help", "Помощь"),
+    types.BotCommand("subjects", "Выбрать предметы"),
+    types.BotCommand("set_desired_score", "Установить цель"),
+    types.BotCommand("add_score", "Добавить результат"),
+    types.BotCommand("profile", "Профиль"),
+]
+
+async def register_bot_commands(bot: AsyncTeleBot) -> None:
+    await bot.set_my_commands(BOT_COMMANDS)
+    

@@ -3,7 +3,6 @@ from telebot import Handler
 from telebot.types import Message
 from telebot import types
 from telebot.async_telebot import AsyncTeleBot
-from telebot.asyncio_helper import get_chat
 from logging import Logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from db import crud
@@ -100,6 +99,8 @@ async def set_subjects_handler(event: Message | types.CallbackQuery, db: AsyncSe
     
     markup = types.InlineKeyboardMarkup(row_width=2)
     
+    buttons = []
+    
     for subject_id, subject_name in EGE_SUBJECTS_DICT.items():
         if subject_id in user_subject_ids:
             btn = types.InlineKeyboardButton(
@@ -111,7 +112,10 @@ async def set_subjects_handler(event: Message | types.CallbackQuery, db: AsyncSe
                 text=subject_name,
                 callback_data=f"set_subject_{subject_id}"
             )
-        markup.add(btn)
+        buttons.append(btn)
+    
+    for i in range(0, len(buttons), 2):
+        markup.add(buttons[i], buttons[i+1] if i+1 < len(buttons) else None)
     
     await bot.send_message(telegram_event.chat_id, message_text, reply_markup=markup)
 
