@@ -61,7 +61,6 @@ async def handle_help(message: Message, db: AsyncSession, logger: Logger, bot: A
     
     help_text += f"🎯 **Основные команды:**\n"
     help_text += f"`/start` — Начало работы, главное меню\n"
-    help_text += f"`/help` — Эта справка\n"
     help_text += f"`/profile` — Ваш профиль и статистика\n\n"
     
     help_text += f"📖 **Работа с предметами:**\n"

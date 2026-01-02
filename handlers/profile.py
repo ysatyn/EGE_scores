@@ -11,7 +11,7 @@ import datetime
 
 from utils.subjects import EGE_SUBJECTS_DICT
 from utils.obertka import make_registered_handler
-
+from utils.validators import TelegramEvent
 
 def register_handlers(bot: AsyncTeleBot, logger: Logger = None):
     logger.info("Registering profile handlers")
@@ -25,9 +25,14 @@ def register_handlers(bot: AsyncTeleBot, logger: Logger = None):
     )
 
 
-async def profile_handler(message: types.Message, db: AsyncSession, logger: Logger, bot: AsyncTeleBot):
-    user = await crud.create_or_update_user(db, **message.from_user.__dict__)
+async def profile_handler(event: Message | types.CallbackQuery, db: AsyncSession, logger: Logger, bot: AsyncTeleBot):
+    if isinstance(event, types.CallbackQuery):
+        await bot.delete_message(event.message.chat.id, event.message.message_id)
+    event = TelegramEvent(event)
+    
+    user = await crud.create_or_update_user(db, **event.from_user.__dict__)
     user_id = user.id
+    
     
     scores = await crud.get_all_scores_for_user(db, id=user_id, subject_id=None)
     total_tests = len(scores)
@@ -46,7 +51,7 @@ async def profile_handler(message: types.Message, db: AsyncSession, logger: Logg
     profile_text += f"📝 *Основное:*\n"
     profile_text += f"├ ID: `{user_id}`\n"
     profile_text += f"├ Имя: {user.first_name} {user.last_name or ''}\n"
-    profile_text += f"├ Юзернейм: @{user.username or 'отсутствует'}\n"
+    profile_text += f"├ Юзернейм: @{user.username}\n" if user.username else ""
     profile_text += f"└ Зарегистрирован: {user.created_at.strftime('%d.%m.%Y')}\n\n"
     
     profile_text += f"📊 *Статистика:*\n"
@@ -87,13 +92,15 @@ async def profile_handler(message: types.Message, db: AsyncSession, logger: Logg
         types.InlineKeyboardButton("📊 Статистика", callback_data="profile_stats"),
         types.InlineKeyboardButton("🏆 Достижения", callback_data="profile_achievements"),
         types.InlineKeyboardButton("📈 Прогресс", callback_data="profile_progress"),
-        types.InlineKeyboardButton("🔄 Обновить", callback_data="profile_refresh")
+        types.InlineKeyboardButton("🔄 Обновить", callback_data="profile")
     ]
     markup.add(*buttons)
     
     await bot.send_message(
-        chat_id=message.chat.id,
+        chat_id=event.chat_id,
         text=profile_text,
         reply_markup=markup,
         parse_mode="Markdown"
     )
+
+
